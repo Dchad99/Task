@@ -125,4 +125,37 @@ class ItemQueryParserTest {
         assertThat(pageable.getPageSize()).isEqualTo(ItemQueryParser.DEFAULT_PAGE_SIZE);
         assertThat(pageable.getSort()).isEqualTo(ItemQueryParser.parseSort(null));
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"", "   ", "\t\n"})
+    @DisplayName("absent or blank search text means no text filter")
+    void blankSearchTextIsNoFilter(String q) {
+        assertThat(ItemQueryParser.toSearchText(q)).isNull();
+        assertThat(ItemQueryParser.toSearchText(null)).isNull();
+    }
+
+    @Test
+    @DisplayName("search text is stripped of surrounding whitespace")
+    void searchTextIsStripped() {
+        assertThat(ItemQueryParser.toSearchText("  floral card\u2003")).isEqualTo("floral card");
+    }
+
+    @Test
+    @DisplayName("search text of exactly the maximum length is accepted")
+    void searchTextAtMaximumLengthIsAccepted() {
+        String atLimit = "a".repeat(ItemQueryParser.MAX_SEARCH_LENGTH);
+
+        assertThat(ItemQueryParser.toSearchText("  " + atLimit + "  ")).isEqualTo(atLimit);
+    }
+
+    @Test
+    @DisplayName("search text over the maximum length is a 400, not silently truncated")
+    void searchTextOverMaximumLengthIsRejected() {
+        String tooLong = "a".repeat(ItemQueryParser.MAX_SEARCH_LENGTH + 1);
+
+        assertThatThrownBy(() -> ItemQueryParser.toSearchText(tooLong))
+                .isInstanceOf(InvalidRequestException.class)
+                .hasMessageContaining("'q'")
+                .hasMessageContaining(String.valueOf(ItemQueryParser.MAX_SEARCH_LENGTH));
+    }
 }

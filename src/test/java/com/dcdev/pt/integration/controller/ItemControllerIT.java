@@ -197,4 +197,15 @@ class ItemControllerIT extends IntegrationTestBase {
                 result.getResponse().getContentAsString(),
                 new CustomComparator(JSONCompareMode.STRICT, new Customization("timestamp", (o1, o2) -> true)));
     }
+
+    @Test
+    @DisplayName("search text longer than 100 characters is a 400 with the shared error shape")
+    void overlongSearchTextIsBadRequest() throws Exception {
+        mockMvc.perform(get("/api/items").param("q", "a".repeat(101)))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.status").value(400))
+                .andExpect(jsonPath("$.path").value("/api/items"))
+                .andExpect(jsonPath("$.message").value(
+                        "Parameter 'q' must be at most 100 characters, but was 101."));
+    }
 }

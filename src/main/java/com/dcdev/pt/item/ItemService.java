@@ -33,22 +33,19 @@ public class ItemService {
     public Page<ItemResponse> search(String q, Category category, Integer page, Integer size, String sort) {
         Pageable pageable = ItemQueryParser.toPageable(page, size, sort);
 
+        String searchText = ItemQueryParser.toSearchText(q);
+
         List<Specification<Item>> filters = new ArrayList<>();
-        if (q != null && !q.isBlank()) {
-            filters.add(ItemSpecifications.textMatches(q.trim()));
+        if (searchText != null) {
+            filters.add(ItemSpecifications.textMatches(searchText));
         }
         if (category != null) {
             filters.add(ItemSpecifications.hasCategory(category));
         }
 
-        // Specification.allOf(...) on an empty list returns a "match everything"
-        // specification rather than null. A concrete Specification<Item> instance
-        // (never a bare null), plus the explicit cast below, sidesteps a real javac
-        // ambiguity: ItemRepository extends both
-        // JpaSpecificationExecutor.findAll(Specification, Pageable) and, via
-        // JpaRepository, QueryByExampleExecutor.findAll(Example, Pageable) — the two
-        // overloads are otherwise equally applicable from the compiler's point of view.
-
+        // allOf(...) of an empty list is a concrete "match everything" Specification,
+        // never null — which also keeps findAll(Specification, Pageable) unambiguous
+        // against QueryByExampleExecutor.findAll(Example, Pageable).
         return repository.findAll(Specification.allOf(filters), pageable).map(ItemResponse::from);
     }
 

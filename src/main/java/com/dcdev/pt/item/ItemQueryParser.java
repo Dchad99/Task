@@ -22,6 +22,9 @@ public final class ItemQueryParser {
     /** Hard ceiling — without it a client can request the whole table in one call. */
     public static final int MAX_PAGE_SIZE = 100;
 
+    /** Longest accepted search text, after stripping. Bounds the LIKE pattern and the request. */
+    public static final int MAX_SEARCH_LENGTH = 100;
+
     /** Allow-list rather than an open sort parameter, which would leak entity field names. */
     private static final Set<String> SORTABLE_FIELDS = Set.of("createdAt", "name", "price");
 
@@ -49,6 +52,23 @@ public final class ItemQueryParser {
                     "Parameter 'size' must not exceed " + MAX_PAGE_SIZE + ", but was " + size + ".");
         }
         return PageRequest.of(page, size, parseSort(sort));
+    }
+
+    /**
+     * Normalises the free-text search parameter: surrounding whitespace is stripped,
+     * absent or blank means "no text filter" ({@code null}), and anything longer than
+     * {@link #MAX_SEARCH_LENGTH} is rejected rather than silently truncated.
+     */
+    public static String toSearchText(String q) {
+        if (q == null || q.isBlank()) {
+            return null;
+        }
+        String text = q.strip();
+        if (text.length() > MAX_SEARCH_LENGTH) {
+            throw new InvalidRequestException("Parameter 'q' must be at most " + MAX_SEARCH_LENGTH
+                    + " characters, but was " + text.length() + ".");
+        }
+        return text;
     }
 
     /**
