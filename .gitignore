@@ -4,6 +4,7 @@ target/
 # IntelliJ IDEA (keep shared project settings, ignore per-user state)
 out/
 *.iws
+*.iml
 .idea/workspace.xml
 .idea/shelf/
 .idea/usage.statistics.xml
