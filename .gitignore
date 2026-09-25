@@ -1,0 +1,14 @@
+# Maven
+target/
+
+# IntelliJ IDEA (keep shared project settings, ignore per-user state)
+out/
+*.iws
+.idea/workspace.xml
+.idea/shelf/
+.idea/usage.statistics.xml
+.idea/dictionaries/
+.idea/libraries/
+
+# OS
+.DS_Store

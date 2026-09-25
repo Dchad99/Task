@@ -1,0 +1,21 @@
+spring:
+  application:
+    name: pt
+  datasource:
+    # In-memory H2, recreated on every start. DB_CLOSE_DELAY keeps it alive between connections.
+    url: jdbc:h2:mem:pt;DB_CLOSE_DELAY=-1
+    username: sa
+    password:
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate   # schema is owned by Flyway
+  flyway:
+    locations: classpath:db/migration
+  h2:
+    console:
+      enabled: true        # http://localhost:8080/h2-console, JDBC URL above
+
+server:
+  error:
+    include-stacktrace: never
