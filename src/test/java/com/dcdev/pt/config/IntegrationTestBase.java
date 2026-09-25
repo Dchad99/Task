@@ -57,6 +57,10 @@ public abstract class IntegrationTestBase {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
+    /** SQL text and bound values of every statement; reset before each test. */
+    @Autowired
+    protected SqlStatementRecorder sqlRecorder;
+
     /** DBUnitExtension locates this by reflection (a field or method returning ConnectionHolder). */
     private ConnectionHolder connectionHolder;
 
@@ -64,6 +68,7 @@ public abstract class IntegrationTestBase {
     void initConnectionHolderAndResetQueryCount() {
         connectionHolder = dataSource::getConnection;
         SQLStatementCountValidator.reset();
+        sqlRecorder.reset();
     }
 
     /**
