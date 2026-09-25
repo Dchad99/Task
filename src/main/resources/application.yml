@@ -45,8 +45,17 @@ spring:
         # everywhere, independent of the host's time zone.
         jdbc:
           time_zone: UTC
+          # Send INSERT/UPDATEs to the driver in JDBC batches instead of one round
+          # trip per row (seeding 2,000 items = 40 batches, not 2,000 statements).
+          # 50 matches the id sequence's INCREMENT BY / allocationSize, so one
+          # sequence call hands out exactly one batch worth of ids.
+          batch_size: 50
         type:
           preferred_instant_jdbc_type: TIMESTAMP
+        # Group statements by entity so a batch is not broken up by interleaved
+        # inserts of different types (relevant once there is more than one entity).
+        order_inserts: true
+        order_updates: true
 
   flyway:
     enabled: true

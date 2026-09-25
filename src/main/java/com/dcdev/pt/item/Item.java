@@ -36,8 +36,10 @@ import java.time.Instant;
 public class Item {
 
     /**
-     * SEQUENCE rather than IDENTITY so Hibernate can batch inserts — matters once
-     * we seed 2,000 rows at startup.
+     * SEQUENCE rather than IDENTITY so Hibernate can batch inserts (IDENTITY needs
+     * the generated key back after every single INSERT). Batching itself is on via
+     * {@code hibernate.jdbc.batch_size: 50} in application.yml — matters once we
+     * seed 2,000 rows at startup. allocationSize must equal the sequence's INCREMENT BY.
      */
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "item_seq")
