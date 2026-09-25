@@ -1,0 +1,6 @@
+{
+  "content": [
+    {"id": 103, "name": "Vintage Rose Bouquet Card", "category": "WEDDING", "description": "Confetti and celebration", "price": 6.25, "createdAt": "2026-02-03T09:00:00Z"}
+  ],
+  "page": {"number": 0, "size": 25, "totalElements": 1, "totalPages": 1}
+}

@@ -1,0 +1,41 @@
+# Fixture for text-search behaviour: case-insensitive matching across both
+# name and description, and tolerance of a null description (a naive
+# "description LIKE ..." with no null-safety would silently drop that row
+# from every search, which is exactly what id 102/106 would catch).
+items:
+  - id: 101
+    name: "Watercolour Sunset Card"
+    category: "BIRTHDAY"
+    description: "A lovely birthday gift"
+    price: 4.00
+    created_at: "2026-02-01 09:00:00"
+  - id: 102
+    name: "Bold Geometric Print"
+    category: "OTHER"
+    description: null
+    price: 8.50
+    created_at: "2026-02-02 09:00:00"
+  - id: 103
+    name: "Vintage Rose Bouquet Card"
+    category: "WEDDING"
+    description: "Confetti and celebration"
+    price: 6.25
+    created_at: "2026-02-03 09:00:00"
+  - id: 104
+    name: "Kraft Paper Gift Bag"
+    category: "OTHER"
+    description: "Recycled kraft bag for any occasion"
+    price: 3.00
+    created_at: "2026-02-04 09:00:00"
+  - id: 105
+    name: "Foil Anniversary Card"
+    category: "ANNIVERSARY"
+    description: "A shiny foil card"
+    price: 5.50
+    created_at: "2026-02-05 09:00:00"
+  - id: 106
+    name: "sunset gift tag"
+    category: "OTHER"
+    description: null
+    price: 1.25
+    created_at: "2026-02-06 09:00:00"

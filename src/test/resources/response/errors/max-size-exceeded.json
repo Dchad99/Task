@@ -1,0 +1,7 @@
+{
+  "timestamp": "ignored-by-test-Customization",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Parameter 'size' must not exceed 100, but was 101.",
+  "path": "/api/items"
+}

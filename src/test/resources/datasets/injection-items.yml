@@ -1,0 +1,36 @@
+# Fixture for input-injection tests. Each "special" row contains exactly one
+# character that means something to SQL or to LIKE, and no other row contains
+# it — so a search for that character must return that row and nothing else.
+# If LIKE wildcards were not escaped, a search for "%" or "_" would match every
+# row; if quotes/backslashes were concatenated into SQL, the query would break.
+items:
+  - id: 900001
+    name: "50% Off Sale Card"
+    category: "OTHER"
+    description: "Half price"
+    price: 2.00
+    created_at: "2026-03-01 09:00:00"
+  - id: 900002
+    name: "gift_tag_set"
+    category: "OTHER"
+    description: null
+    price: 1.50
+    created_at: "2026-03-02 09:00:00"
+  - id: 900003
+    name: "O'Brien Family Card"
+    category: "BIRTHDAY"
+    description: "For the O'Briens"
+    price: 3.00
+    created_at: "2026-03-03 09:00:00"
+  - id: 900004
+    name: "Back\\slash Bag"
+    category: "OTHER"
+    description: "Kraft bag"
+    price: 4.00
+    created_at: "2026-03-04 09:00:00"
+  - id: 900005
+    name: "Plain Wedding Card"
+    category: "WEDDING"
+    description: "Nothing special here"
+    price: 5.00
+    created_at: "2026-03-05 09:00:00"
