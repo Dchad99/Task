@@ -48,7 +48,8 @@ test resources: datasets/*.yml (Rider fixtures) · response/{errors,success}/*.j
 ## Querying rules
 - Search, filtering, sorting and paging happen in the database, never in memory.
 - One `Specification` method per filter in `ItemSpecifications`. `ItemService` combines only those requested.
-- Escape user text for LIKE (`%`, `_`, escape char). Never concatenate input into JPQL/SQL.
+- Search text: `ItemQueryParser.toSearchText` (strip, blank → no filter, max 100 chars). Escape it for LIKE
+  (`%`, `_`, escape char). Never concatenate input into JPQL/SQL.
 - Sort only through the allow-list in `ItemQueryParser`. `id` is always appended as the tie-breaker.
 - Page size max 100. Defaults (page 0, size 25, `createdAt,desc`) belong in `ItemQueryParser` only.
 - A listing request = at most 2 SQL statements (data + count). For a future to-many relation: filter via
@@ -59,6 +60,7 @@ test resources: datasets/*.yml (Rider fixtures) · response/{errors,success}/*.j
 - SEQUENCE ids. `allocationSize` = sequence `INCREMENT BY` (currently 50).
 - `open-in-view=false`. Read service methods are `@Transactional(readOnly = true)`.
 - `Instant` is stored as UTC `TIMESTAMP` (`hibernate.jdbc.time_zone: UTC`). Keep it that way.
+- Inserts are JDBC-batched (`hibernate.jdbc.batch_size: 50` = `allocationSize`). Pinned by `ItemInsertBatchingIT`.
 
 ## Recipes (common interview-style changes)
 - **New filter**: Specification method → `@RequestParam` in `ItemController` → add in `ItemService.search`
@@ -77,7 +79,9 @@ test resources: datasets/*.yml (Rider fixtures) · response/{errors,success}/*.j
   empties `items` after each test. Never `cleanBefore`/`cleanAfter` (clears Flyway history too).
   A new table must be added to that cleanup.
 - Dataset YAML uses DB column names (`created_at`). Expected bodies live in `response/` (`readResponse`).
-- Query-count checks: `SQLStatementCountValidator` (reset in `IntegrationTestBase`).
+- SQL checks: `SQLStatementCountValidator` for counts, `sqlRecorder` (SQL text + bound values, batch sizes)
+  for how input reaches the DB. Both reset in `IntegrationTestBase`. Call `sqlRecorder.reset()` again right
+  before the checked action, since Rider's fixture load is recorded too.
 - When reporting a change, name the command that proves it.
 
 ## Frontend rules

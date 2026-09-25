@@ -58,7 +58,8 @@ What the integration tests cover:
 - **`ItemControllerIT`**: the HTTP contract (page envelope, create/delete status codes, `Location` header, error bodies).
 - **`ItemRepositoryIT`**: filtering, sorting and paging against the real schema, including stable ordering when sort values tie.
 - **`ItemListingQueryCountIT`**: a listing request runs at most 2 SQL statements (data + count), whatever the page size.
-- **`InputInjectionIT`**: SQL in any parameter is treated as data or rejected, and LIKE wildcards (`%`, `_`) match literally.
+- **`InputInjectionIT`**: SQL in any parameter is treated as data or rejected. It checks the statements actually sent to the driver: accepted input only ever arrives as a bound parameter, and rejected input never reaches SQL at all. LIKE wildcards (`%`, `_`) match literally.
+- **`ItemInsertBatchingIT`**: inserts go to the database in JDBC batches of 50.
 
 ---
 
@@ -90,7 +91,7 @@ Base path: `/api`. JSON in and out.
 
 | Parameter | Default | Rules |
 | --- | --- | --- |
-| `q` | none | Case-insensitive substring match on name **or** description. `%` and `_` match literally. |
+| `q` | none | Case-insensitive substring match on name **or** description, at most 100 characters. `%` and `_` match literally. |
 | `category` | none | One of `BIRTHDAY`, `WEDDING`, `ANNIVERSARY`, `THANK_YOU`, `CHRISTMAS`, `OTHER` |
 | `page` | `0` | 0-based, ≥ 0 |
 | `size` | `25` | 1–100 (capped; larger values are a 400, not silently clamped) |
@@ -160,7 +161,7 @@ Every failure has the same shape, never a stack trace:
 ```
 
 `fieldErrors` is present only for body validation failures. Bad query parameters (unknown sort field,
-`size` over 100, invalid category, non-numeric `page`) return a `400` whose `message` says what was
+`size` over 100, `q` over 100 characters, invalid category, non-numeric `page`) return a `400` whose `message` says what was
 wrong and what's allowed.
 
 ---
