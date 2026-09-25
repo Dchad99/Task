@@ -1,0 +1,47 @@
+spring:
+  application:
+    name: task1-item-listing
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/${DB_NAME:items}
+    driver-class-name: org.postgresql.Driver
+    username: ${DB_USER:items}
+    password: ${DB_PASSWORD:items}
+
+  jpa:
+    hibernate:
+      # Flyway (below) owns the schema; Hibernate only checks its mappings agree
+      # with it at startup, instead of generating/dropping tables itself.
+      ddl-auto: validate
+    # Keep the persistence context out of the view layer: every query happens
+    # deliberately inside a service-level transaction. This also matters later,
+    # when query-count tests need queries to happen at a known, bounded point.
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        # Defensive net: the domain has no collection relationships today, so this
+        # never trips, but it turns a silently-wrong pagination (Hibernate falling
+        # back to in-memory paging over a collection fetch join) into a hard
+        # failure at query time instead, if one is ever added carelessly.
+        query:
+          fail_on_pagination_over_collection_fetch: true
+        # created_at is a TIMESTAMP column (no time zone) mapped to an Instant.
+        # Without this, Hibernate converts between the two using the JVM's
+        # default zone, so the same row would read back as a different instant
+        # depending on which machine (or container) runs the app. Pinning it to
+        # UTC makes that conversion deterministic everywhere, independent of the
+        # host's local time zone.
+        jdbc:
+          time_zone: UTC
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+server:
+  port: 8080
+
+app:
+  seed:
+    count: 2000

@@ -1,0 +1,76 @@
+# 12 rows with strictly increasing created_at (one hour apart, no ties), so
+# page boundaries are unambiguous. Used for first/middle/last-page tests and
+# for confirming pages don't overlap or skip a row.
+items:
+  - id: 201
+    name: "Pagination Item 01"
+    category: "OTHER"
+    description: "Row 1 of 12"
+    price: 1.00
+    created_at: "2026-03-01 00:00:00"
+  - id: 202
+    name: "Pagination Item 02"
+    category: "OTHER"
+    description: "Row 2 of 12"
+    price: 2.00
+    created_at: "2026-03-01 01:00:00"
+  - id: 203
+    name: "Pagination Item 03"
+    category: "OTHER"
+    description: "Row 3 of 12"
+    price: 3.00
+    created_at: "2026-03-01 02:00:00"
+  - id: 204
+    name: "Pagination Item 04"
+    category: "OTHER"
+    description: "Row 4 of 12"
+    price: 4.00
+    created_at: "2026-03-01 03:00:00"
+  - id: 205
+    name: "Pagination Item 05"
+    category: "OTHER"
+    description: "Row 5 of 12"
+    price: 5.00
+    created_at: "2026-03-01 04:00:00"
+  - id: 206
+    name: "Pagination Item 06"
+    category: "OTHER"
+    description: "Row 6 of 12"
+    price: 6.00
+    created_at: "2026-03-01 05:00:00"
+  - id: 207
+    name: "Pagination Item 07"
+    category: "OTHER"
+    description: "Row 7 of 12"
+    price: 7.00
+    created_at: "2026-03-01 06:00:00"
+  - id: 208
+    name: "Pagination Item 08"
+    category: "OTHER"
+    description: "Row 8 of 12"
+    price: 8.00
+    created_at: "2026-03-01 07:00:00"
+  - id: 209
+    name: "Pagination Item 09"
+    category: "OTHER"
+    description: "Row 9 of 12"
+    price: 9.00
+    created_at: "2026-03-01 08:00:00"
+  - id: 210
+    name: "Pagination Item 10"
+    category: "OTHER"
+    description: "Row 10 of 12"
+    price: 10.00
+    created_at: "2026-03-01 09:00:00"
+  - id: 211
+    name: "Pagination Item 11"
+    category: "OTHER"
+    description: "Row 11 of 12"
+    price: 11.00
+    created_at: "2026-03-01 10:00:00"
+  - id: 212
+    name: "Pagination Item 12"
+    category: "OTHER"
+    description: "Row 12 of 12"
+    price: 12.00
+    created_at: "2026-03-01 11:00:00"

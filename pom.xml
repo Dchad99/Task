@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.4</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.dcdev.pt</groupId>
+    <artifactId>Task1</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <name>Task1</name>
+    <description>Server-side paginated item listing service (interview exercise)</description>
+
+    <properties>
+        <java.version>21</java.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- Production persistence: PostgreSQL. (Previously H2 — switched at the
+             developer's explicit request; see README "Trade-offs" for what this
+             costs: mvn spring-boot:run alone no longer starts the app without a
+             reachable Postgres — docker-compose.yml provides one.) -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+        </dependency>
+        <!-- Flyway 10+ split per-database support out of flyway-core; PostgreSQL
+             needs this explicitly or Flyway fails at startup with
+             "Unsupported Database: PostgreSQL". -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Integration tests run against a real PostgreSQL Testcontainer, not H2 —
+             version managed by Spring Boot's own dependency management (Boot 3.1+),
+             so no explicit <version> is pinned here. -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Database Rider: @DataSet-driven fixtures for deterministic integration
+             tests. The "jakarta" classifier is required for Spring Boot 3 (Jakarta
+             namespace); the plain artifact targets the older javax namespace.
+             Deliberately rider-junit5 only, not rider-spring: rider-spring's
+             @DBRider historically pulls in a JUnit 4 TestRule/EntityManagerProvider
+             path (see database-rider/database-rider#147), which we don't want on
+             a pure-JUnit5 classpath. rider-junit5's @DBRider plus a Spring-sourced
+             ConnectionHolder is the combination reported to work for read-oriented
+             (list/search) tests, which is all this project's dataset tests do. -->
+        <dependency>
+            <groupId>com.github.database-rider</groupId>
+            <artifactId>rider-junit5</artifactId>
+            <version>1.44.0</version>
+            <classifier>jakarta</classifier>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Query-count / N+1 verification. com.vladmihalcea:db-util (the version the
+             brief names) last released in 2022 and predates Hibernate 6 support; its
+             SQLStatementCountValidator moved to this actively maintained successor
+             (same author, same API, io.hypersistence.utils.jdbc.validator package).
+             Only one query-counter library is used. -->
+        <dependency>
+            <groupId>io.hypersistence</groupId>
+            <artifactId>hypersistence-utils-hibernate-63</artifactId>
+            <version>3.15.5</version>
+            <scope>test</scope>
+        </dependency>
+        <!-- hypersistence-utils declares this as optional/provided; it's the actual
+             JDBC-level proxy that counts statements, so it must be listed explicitly. -->
+        <dependency>
+            <groupId>net.ttddyy</groupId>
+            <artifactId>datasource-proxy</artifactId>
+            <version>1.11.0</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+            <!-- Surefire (bound to the "test" phase) only picks up *Test/Test*/*Tests
+                 classes by its own default include patterns, so it already skips every
+                 *IT class here without any extra configuration — that split is what
+                 keeps `mvn test` fast (unit only) while `mvn verify`/`mvn install` also
+                 exercises the database-backed suite.
+                 Declaring this plugin at all is what's actually required: without it,
+                 *IT classes are compiled but never executed by anything, regardless of
+                 which phase you run. Because this project inherits
+                 spring-boot-starter-parent, its <pluginManagement> already supplies the
+                 <executions> (goals: integration-test, verify) and the
+                 <classesDirectory> override that points Failsafe at target/classes
+                 instead of the repackaged fat jar spring-boot-maven-plugin builds during
+                 "package" (a well-documented Spring-Boot/Failsafe interaction — see
+                 README "Testing" for the reference) — so no extra configuration is
+                 needed here, only the bare declaration below. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

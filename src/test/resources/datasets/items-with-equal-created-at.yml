@@ -1,0 +1,35 @@
+# All 5 rows share the exact same created_at. Sorting by createdAt alone would
+# leave their relative order database-defined (i.e. undefined); only the id
+# tie-breaker ItemQueryParser always appends makes the order total and
+# repeatable across runs and across pages.
+items:
+  - id: 301
+    name: "Tied Item A"
+    category: "BIRTHDAY"
+    description: "Shares its created_at with every other row here"
+    price: 3.00
+    created_at: "2026-04-01 12:00:00"
+  - id: 302
+    name: "Tied Item B"
+    category: "BIRTHDAY"
+    description: "Shares its created_at with every other row here"
+    price: 3.00
+    created_at: "2026-04-01 12:00:00"
+  - id: 303
+    name: "Tied Item C"
+    category: "BIRTHDAY"
+    description: "Shares its created_at with every other row here"
+    price: 3.00
+    created_at: "2026-04-01 12:00:00"
+  - id: 304
+    name: "Tied Item D"
+    category: "BIRTHDAY"
+    description: "Shares its created_at with every other row here"
+    price: 3.00
+    created_at: "2026-04-01 12:00:00"
+  - id: 305
+    name: "Tied Item E"
+    category: "BIRTHDAY"
+    description: "Shares its created_at with every other row here"
+    price: 3.00
+    created_at: "2026-04-01 12:00:00"

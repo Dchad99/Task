@@ -1,0 +1,7 @@
+{
+  "content": [
+    {"id": 101, "name": "Watercolour Sunset Card", "category": "BIRTHDAY", "description": "A lovely birthday gift", "price": 4.00, "createdAt": "2026-02-01T09:00:00Z"},
+    {"id": 106, "name": "sunset gift tag", "category": "OTHER", "description": null, "price": 1.25, "createdAt": "2026-02-06T09:00:00Z"}
+  ],
+  "page": {"number": 0, "size": 50, "totalElements": 2, "totalPages": 1}
+}

@@ -1,0 +1,10 @@
+{
+  "timestamp": "ignored-by-test-Customization",
+  "status": 400,
+  "error": "Bad Request",
+  "message": "Validation failed for the submitted item.",
+  "path": "/api/items",
+  "fieldErrors": {
+    "name": "name must not be blank"
+  }
+}

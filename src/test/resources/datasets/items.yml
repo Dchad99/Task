@@ -1,0 +1,50 @@
+# Fixed, deterministic fixture for @DataSet-driven tests. Deliberately separate
+# from the 2,000-row production seed (SeedDataConfiguration) — this file is
+# small and hand-curated so exact counts/ordering can be asserted, whereas the
+# production seed is randomised and only used for volume/manual demo.
+#
+# Two rows (ids 10 and 11) intentionally share the same created_at value, so
+# tests can verify the id tie-breaker actually disambiguates them.
+items:
+  - id: 1
+    name: "Watercolour Birthday Card"
+    category: "BIRTHDAY"
+    description: "A watercolour card for a birthday"
+    price: 4.50
+    created_at: "2026-01-10 09:00:00"
+  - id: 2
+    name: "Foil-Stamped Wedding Invitation"
+    category: "WEDDING"
+    description: "Confetti-themed wedding stationery"
+    price: 12.00
+    created_at: "2026-01-11 09:00:00"
+  - id: 3
+    name: "Minimalist Thank You Note"
+    category: "THANK_YOU"
+    description: "A short thank you note"
+    price: 3.25
+    created_at: "2026-01-12 09:00:00"
+  - id: 4
+    name: "Botanical Christmas Bunting"
+    category: "CHRISTMAS"
+    description: null
+    price: 15.00
+    created_at: "2026-01-13 09:00:00"
+  - id: 5
+    name: "Vintage Anniversary Card"
+    category: "ANNIVERSARY"
+    description: "For a wedding anniversary"
+    price: 5.75
+    created_at: "2026-01-14 09:00:00"
+  - id: 10
+    name: "Pop-Up Birthday Card"
+    category: "BIRTHDAY"
+    description: "A pop-up card for a birthday"
+    price: 6.00
+    created_at: "2026-01-15 09:00:00"
+  - id: 11
+    name: "Photographic Birthday Card"
+    category: "BIRTHDAY"
+    description: "A photographic card for a birthday"
+    price: 6.50
+    created_at: "2026-01-15 09:00:00"

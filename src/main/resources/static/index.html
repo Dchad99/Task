@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Item listing</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="page">
+    <header class="page__header">
+        <h1>Items</h1>
+        <p class="page__subtitle">Search, filtering, sorting and paging all happen on the server.</p>
+    </header>
+
+    <section class="panel" aria-label="Add item">
+        <h2 class="panel__title">Add an item</h2>
+        <form id="add-form" class="add-form" novalidate>
+            <label class="field">
+                <span class="field__label">Name</span>
+                <input id="add-name" name="name" type="text" maxlength="255" required placeholder="Floral Birthday Card">
+            </label>
+            <label class="field">
+                <span class="field__label">Category</span>
+                <select id="add-category" name="category" required></select>
+            </label>
+            <label class="field field--wide">
+                <span class="field__label">Description</span>
+                <input id="add-description" name="description" type="text" maxlength="1000" placeholder="Optional">
+            </label>
+            <label class="field field--narrow">
+                <span class="field__label">Price</span>
+                <input id="add-price" name="price" type="number" step="0.01" min="0" placeholder="Optional">
+            </label>
+            <button type="submit" class="button button--primary">Add item</button>
+        </form>
+        <p id="add-error" class="message message--error" role="alert" hidden></p>
+    </section>
+
+    <section class="panel" aria-label="Filters">
+        <div class="filters">
+            <label class="field field--wide">
+                <span class="field__label">Search</span>
+                <input id="filter-q" type="search" placeholder="Search name and description…" autocomplete="off">
+            </label>
+            <label class="field">
+                <span class="field__label">Category</span>
+                <select id="filter-category">
+                    <option value="">All categories</option>
+                </select>
+            </label>
+            <label class="field">
+                <span class="field__label">Sort</span>
+                <select id="filter-sort">
+                    <option value="createdAt,desc">Newest first</option>
+                    <option value="createdAt,asc">Oldest first</option>
+                    <option value="name,asc">Name A–Z</option>
+                    <option value="name,desc">Name Z–A</option>
+                    <option value="price,asc">Price low to high</option>
+                    <option value="price,desc">Price high to low</option>
+                </select>
+            </label>
+            <label class="field field--narrow">
+                <span class="field__label">Page size</span>
+                <select id="filter-size">
+                    <option value="10">10</option>
+                    <option value="25" selected>25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                </select>
+            </label>
+        </div>
+    </section>
+
+    <section class="panel" aria-label="Results">
+        <div class="results__status">
+            <span id="summary" class="summary" aria-live="polite">Loading…</span>
+            <span id="loading" class="spinner" role="status" aria-label="Loading" hidden></span>
+        </div>
+
+        <p id="list-error" class="message message--error" role="alert" hidden></p>
+        <p id="empty" class="message message--empty" hidden>No items match these filters.</p>
+
+        <table id="results-table" class="table" hidden>
+            <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Category</th>
+                <th scope="col">Description</th>
+                <th scope="col" class="numeric">Price</th>
+                <th scope="col">Created</th>
+                <th scope="col"><span class="visually-hidden">Actions</span></th>
+            </tr>
+            </thead>
+            <tbody id="results-body"></tbody>
+        </table>
+
+        <nav class="pagination" aria-label="Pagination">
+            <button id="prev" type="button" class="button" disabled>Previous</button>
+            <span id="page-indicator" class="pagination__indicator">Page 1</span>
+            <button id="next" type="button" class="button" disabled>Next</button>
+        </nav>
+    </section>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

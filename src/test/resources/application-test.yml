@@ -1,0 +1,16 @@
+# Active only for tests tagged @ActiveProfiles("test") (see config.IT). The
+# datasource itself is NOT set here — IntegrationTestBase registers
+# spring.datasource.* dynamically from the Testcontainer via
+# @DynamicPropertySource, which always wins over a static properties file.
+#
+# Seeding is disabled so every integration test starts from whatever
+# @DataSet fixture (or explicit setup code) it declares, never from the
+# randomised 2,000-row production catalogue.
+app:
+  seed:
+    enabled: false
+
+logging:
+  level:
+    org.testcontainers: WARN
+    com.github.dockerjava: WARN

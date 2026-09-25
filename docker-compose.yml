@@ -1,0 +1,50 @@
+# Two services: a PostgreSQL database and the app itself (embedded H2 was
+# dropped in favour of Postgres for both production and integration tests).
+# The static frontend is still served from the app's own jar, so no separate
+# frontend container is needed.
+#
+# Run:  docker compose up --build
+# Then: http://localhost:8080  (UI)  and  http://localhost:8080/api/items  (API)
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-items}
+      POSTGRES_USER: ${DB_USER:-items}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-items}
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-items} -d ${DB_NAME:-items}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+  app:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-items}
+      DB_USER: ${DB_USER:-items}
+      DB_PASSWORD: ${DB_PASSWORD:-items}
+      # Overridable without touching application.yml, e.g.:
+      #   APP_SEED_COUNT=500 docker compose up
+      APP_SEED_COUNT: ${APP_SEED_COUNT:-2000}
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/api/categories"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 20s
+
+volumes:
+  db-data:

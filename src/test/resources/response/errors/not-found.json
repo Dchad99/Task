@@ -1,0 +1,7 @@
+{
+  "timestamp": "ignored-by-test-Customization",
+  "status": 404,
+  "error": "Not Found",
+  "message": "Item 999999 was not found.",
+  "path": "/api/items/999999"
+}

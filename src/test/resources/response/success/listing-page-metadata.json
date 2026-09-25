@@ -1,0 +1,10 @@
+{
+  "content": [
+    {"id": 201, "name": "Pagination Item 01", "category": "OTHER", "description": "Row 1 of 12", "price": 1.00, "createdAt": "2026-03-01T00:00:00Z"},
+    {"id": 202, "name": "Pagination Item 02", "category": "OTHER", "description": "Row 2 of 12", "price": 2.00, "createdAt": "2026-03-01T01:00:00Z"},
+    {"id": 203, "name": "Pagination Item 03", "category": "OTHER", "description": "Row 3 of 12", "price": 3.00, "createdAt": "2026-03-01T02:00:00Z"},
+    {"id": 204, "name": "Pagination Item 04", "category": "OTHER", "description": "Row 4 of 12", "price": 4.00, "createdAt": "2026-03-01T03:00:00Z"},
+    {"id": 205, "name": "Pagination Item 05", "category": "OTHER", "description": "Row 5 of 12", "price": 5.00, "createdAt": "2026-03-01T04:00:00Z"}
+  ],
+  "page": {"number": 0, "size": 5, "totalElements": 12, "totalPages": 3}
+}
