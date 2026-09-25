@@ -1,0 +1,30 @@
+# One service: the app, with its embedded in-memory H2 database and the static
+# frontend served from the same jar. Equivalent to `mvn spring-boot:run`, for
+# anyone without a local JDK/Maven.
+#
+# Run:   docker compose up --build
+# Then:  http://localhost:8080 (UI), /api/items (API), /h2-console (DB console)
+# Stop:  docker compose down
+services:
+  app:
+    build: .
+    image: task-app
+    ports:
+      # APP_PORT=8081 docker compose up — if 8080 is taken (e.g. the app is
+      # already running from the IDE).
+      # Bound to 127.0.0.1: with WEB_ALLOW_OTHERS below, publishing on all interfaces
+      # would expose the H2 console (arbitrary SQL) to the local network.
+      - "127.0.0.1:${APP_PORT:-8080}:8080"
+    environment:
+      # APP_SEED_COUNT=500 docker compose up — seed size without editing config.
+      APP_SEED_COUNT: ${APP_SEED_COUNT:-2000}
+      # The H2 console only accepts localhost by default; from the host, requests
+      # reach the container through Docker's network, so allow them here (local only).
+      SPRING_H2_CONSOLE_SETTINGS_WEB_ALLOW_OTHERS: "true"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/api/categories"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s

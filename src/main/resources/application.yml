@@ -1,21 +1,60 @@
 spring:
   application:
-    name: pt
+    name: task1-item-listing
+
+  # In-memory H2: nothing to install, and a freshly seeded catalogue on every start.
+  # DEFAULT_NULL_ORDERING=HIGH makes NULLs sort like PostgreSQL (last for ASC,
+  # first for DESC), so behaviour stays the same if we ever move to Postgres.
   datasource:
-    # In-memory H2, recreated on every start. DB_CLOSE_DELAY keeps it alive between connections.
-    url: jdbc:h2:mem:pt;DB_CLOSE_DELAY=-1
+    url: jdbc:h2:mem:items;DB_CLOSE_DELAY=-1;DEFAULT_NULL_ORDERING=HIGH
+    driver-class-name: org.h2.Driver
     username: sa
-    password:
-  jpa:
-    open-in-view: false
-    hibernate:
-      ddl-auto: validate   # schema is owned by Flyway
-  flyway:
-    locations: classpath:db/migration
+    password: ""
+
+  # Browse the data at http://localhost:8080/h2-console
+  # (JDBC URL: jdbc:h2:mem:items, user: sa, empty password).
   h2:
     console:
-      enabled: true        # http://localhost:8080/h2-console, JDBC URL above
+      enabled: true
+      path: /h2-console
+
+  jpa:
+    hibernate:
+      # Flyway (below) owns the schema; Hibernate only checks its mappings agree
+      # with it at startup, instead of generating/dropping tables itself.
+      ddl-auto: validate
+    # Keep the persistence context out of the view layer: every query happens
+    # deliberately inside a service-level transaction. This also matters later,
+    # when query-count tests need queries to happen at a known, bounded point.
+    open-in-view: false
+    show-sql: false
+    properties:
+      hibernate:
+        # Defensive net: the domain has no collection relationships today, so this
+        # never trips, but it turns a silently-wrong pagination (Hibernate falling
+        # back to in-memory paging over a collection fetch join) into a hard
+        # failure at query time instead, if one is ever added carelessly.
+        query:
+          fail_on_pagination_over_collection_fetch: true
+        # created_at is a TIMESTAMP column (no time zone) mapped to an Instant.
+        # Hibernate 6 binds Instant as TIMESTAMP WITH TIME ZONE by default, and
+        # H2 would convert that to/from the column using the JVM's zone — so the
+        # same row would read back as a different instant on a machine in
+        # Lisbon than in UTC. Binding Instant as a plain TIMESTAMP, converted
+        # with the UTC calendar below, makes storage and reads deterministic
+        # everywhere, independent of the host's time zone.
+        jdbc:
+          time_zone: UTC
+        type:
+          preferred_instant_jdbc_type: TIMESTAMP
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
 
 server:
-  error:
-    include-stacktrace: never
+  port: 8080
+
+app:
+  seed:
+    count: 2000

@@ -1,94 +1,103 @@
 # CLAUDE.md
 
-Small Spring Boot service + vanilla JS listing page that stays responsive with 1,000+ items
-(list/search, add, remove). Take-home exercise: keep it small, pragmatic, easy to run and extend.
-This file is a checklist. Rationale lives in `docs/decisions.md`.
+Spring Boot service + vanilla JS page listing 1,000+ items: search/filter/sort/page, add, remove.
+Take-home exercise, extended live in a pairing interview: keep changes small, pragmatic, easy to follow.
+This file is a checklist. Rationale → `docs/decisions.md`. User-facing docs → `README.md`.
 
 ## Stack
-- Java 21, Spring Boot 3.5 (parent POM), Maven. Base package `com.dcdev.pt`, main class `PtApplication`.
-- H2 (embedded) + Flyway. May move to PostgreSQL later (see Commands, DB lines).
-- Frontend: vanilla HTML/CSS/JS in `src/main/resources/static`, served by Spring Boot. No build step.
+- Java 21, Spring Boot 3.5 (parent POM), Maven. Base package `com.dcdev.pt`, main class `ListingApplication`.
+- H2 in-memory + Flyway, JPA/Hibernate. May move to PostgreSQL later (only the DB rows below change).
+- Frontend: `src/main/resources/static/` (`index.html`, `app.js`, `styles.css`), served by Spring Boot, no build.
+- Tests: JUnit 5, MockMvc, Database Rider (fixtures), datasource-proxy + hypersistence-utils (SQL counting).
 
 ## Commands
 | Task | Command |
 | --- | --- |
-| Run app (http://localhost:8080) | `mvn spring-boot:run` |
-| Unit tests (surefire) | `mvn test` |
-| Unit + integration tests (failsafe) | `mvn verify` |
-| One unit test | `mvn test -Dtest=ItemQueryParserTest` |
-| One integration test | `mvn verify -Dit.test=ItemControllerIT -Dtest=none -Dsurefire.failIfNoSpecifiedTests=false` |
-| DB: engine | H2 in-memory, recreated on every start |
-| DB: console | http://localhost:8080/h2-console (dev only) |
+| Run (http://localhost:8080) | `mvn spring-boot:run` |
+| Run without JDK/Maven | `docker compose up --build` |
+| Unit tests | `mvn test` |
+| Unit + integration tests | `mvn verify` |
+| One unit test class | `mvn test -Dtest=ItemQueryParserTest` |
+| One IT class | `mvn verify -Dit.test=ItemControllerIT -Dtest=none -Dsurefire.failIfNoSpecifiedTests=false` |
+| DB: engine | H2 in-memory `jdbc:h2:mem:items`, fresh + re-seeded every start |
+| DB: console | http://localhost:8080/h2-console (user `sa`, empty password) |
 | DB: schema | `src/main/resources/db/migration/V{n}__description.sql` |
+| Seed | `app.seed.count` (default 2000), `app.seed.enabled` (false in `test` profile) |
 
-## Structure (package by feature)
+## Map
 ```
 com.dcdev.pt
-├── item/     ItemController, CategoryController, ItemService, ItemRepository,
-│             Item, Category, ItemSpecifications, ItemQueryParser, dto/
-├── common/   ApiError, GlobalExceptionHandler, exceptions
-└── config/   SeedDataConfiguration, ClockConfiguration
+├── item/     ItemController (/api/items), CategoryController (/api/categories), ItemService,
+│             ItemQueryParser, ItemSpecifications, ItemRepository, Item, Category,
+│             dto/ CreateItemRequest, ItemResponse, PageResponse
+├── common/   ApiError, ErrorHandler (@RestControllerAdvice), InvalidRequestException, ItemNotFoundException
+└── config/   ClockConfiguration, SeedDataConfiguration
+test: unit/{common,dto,service} *Test · integration/{controller,repository} *IT · config/ (@IT, IntegrationTestBase)
+test resources: datasets/*.yml (Rider fixtures) · response/{errors,success}/*.json (expected bodies)
 ```
-- A new domain concept gets its own sibling package with the same shape as `item/`.
+- A new domain concept gets its own sibling package shaped like `item/`.
 - No generic base repositories, no CQRS/event sourcing, no interface with a single implementation.
 
-## API
-- DTOs only at the HTTP boundary. Request and response DTOs are separate types. Never expose an entity.
-- Listing response envelope:
-  `{ "content": [...], "page": { "number", "size", "totalElements", "totalPages" } }`
-- Every failure returns `ApiError` via `GlobalExceptionHandler`. No stack traces in responses.
-- Input normalisation (trim, blank → null, etc.) lives in the request DTO's compact constructor,
-  so it runs before validation.
+## API rules
+- DTOs only at the HTTP boundary. Separate request and response types. Never expose an entity.
+- Listing envelope: `{ "content": [...], "page": { "number", "size", "totalElements", "totalPages" } }`.
+- Every failure → `ApiError` via `ErrorHandler`. New exception type → new handler there. No stack traces.
+- Normalise input (strip, blank → null) in the request DTO's compact constructor, before validation.
 - Time comes from the injected `Clock`, never `Instant.now()`.
 
-## Querying
-- Search, filtering, sorting and pagination happen in the database, never in memory.
-- One `Specification` method per filter in `ItemSpecifications`. The service combines only the ones that apply.
-- Escape user text used in LIKE: `%`, `_` and the escape char itself.
-- Sort only through the allow-list in `ItemQueryParser`. Always append `id` as the tie-breaker.
-- Page size is capped at 100. Defaults (page, size, sort) live only in `ItemQueryParser`.
-- A listing request costs at most 2 SQL statements (data + count). If a to-many relation is added:
-  - filter via `EXISTS`,
-  - load the collection in a second bounded query for the page's ids,
-  - never `JOIN FETCH` with pagination.
+## Querying rules
+- Search, filtering, sorting and paging happen in the database, never in memory.
+- One `Specification` method per filter in `ItemSpecifications`. `ItemService` combines only those requested.
+- Escape user text for LIKE (`%`, `_`, escape char). Never concatenate input into JPQL/SQL.
+- Sort only through the allow-list in `ItemQueryParser`. `id` is always appended as the tie-breaker.
+- Page size max 100. Defaults (page 0, size 25, `createdAt,desc`) belong in `ItemQueryParser` only.
+- A listing request = at most 2 SQL statements (data + count). For a future to-many relation: filter via
+  `EXISTS`, load the collection in a second bounded query for the page's ids, never `JOIN FETCH` + paging.
 
-## Persistence
-- Schema changes only via a new Flyway migration `V{n}__description.sql`. Never edit an applied migration.
-- `spring.jpa.hibernate.ddl-auto=validate`. Keep it that way.
-- SEQUENCE ids. `allocationSize` must match the sequence `INCREMENT BY`.
-- `spring.jpa.open-in-view=false`. Read service methods are `@Transactional(readOnly = true)`.
-- Seed data (`SeedDataConfiguration`) gives the listing a realistic 1,000+ rows at startup.
+## Persistence rules
+- Schema only via a new Flyway migration. Never edit an applied migration. `ddl-auto=validate` stays.
+- SEQUENCE ids. `allocationSize` = sequence `INCREMENT BY` (currently 50).
+- `open-in-view=false`. Read service methods are `@Transactional(readOnly = true)`.
+- `Instant` is stored as UTC `TIMESTAMP` (`hibernate.jdbc.time_zone: UTC`). Keep it that way.
+
+## Recipes (common interview-style changes)
+- **New filter**: Specification method → `@RequestParam` in `ItemController` → add in `ItemService.search`
+  → UI control in `index.html` + `app.js` state/params (reset to page 0) → unit/IT tests + dataset rows.
+- **New sortable field**: add to `SORTABLE_FIELDS` → index in a new migration if needed → UI `<option>`
+  → `ItemQueryParserTest` + an ordering IT.
+- **New column**: `V{n}__...sql` → `Item` → `CreateItemRequest` (+ validation) / `ItemResponse` → seed
+  → datasets + expected JSON → UI.
+- **New endpoint**: controller method → service method (transactional) → DTOs → `ErrorHandler` if new
+  exception → `ItemControllerIT`.
 
 ## Tests
 - Every behaviour change ships with a test that fails without it.
-- Unit tests: plain JUnit, no Spring context, under `src/test/java/com/dcdev/pt/unit/`, named `*Test`.
-  Run with `mvn test`.
-- Integration tests: `*IT`, MockMvc against the real (H2) DB, seed data disabled, small fixtures per test,
-  under `src/test/java/com/dcdev/pt/integration/`. Run with `mvn verify`.
-- When you report a change, name the command that proves it.
+- Unit (`*Test`, no Spring) → `mvn test`. Integration (`*IT`, extend `IntegrationTestBase`) → `mvn verify`.
+- ITs: seed disabled, small Rider `@DataSet` per test (default CLEAN_INSERT). `IntegrationTestBase`
+  empties `items` after each test. Never `cleanBefore`/`cleanAfter` (clears Flyway history too).
+  A new table must be added to that cleanup.
+- Dataset YAML uses DB column names (`created_at`). Expected bodies live in `response/` (`readResponse`).
+- Query-count checks: `SQLStatementCountValidator` (reset in `IntegrationTestBase`).
+- When reporting a change, name the command that proves it.
 
-## Frontend
-- Only one page of data in the browser at a time. The server does search, filtering and paging.
-- Debounce search input. Abort stale requests (`AbortController`).
-- Any filter or sort change resets to page 0.
-- Render user data with `textContent` only. Never use `innerHTML` with data.
+## Frontend rules
+- One page of data in the browser. Server does search/filter/sort/paging.
+- Debounce search (300 ms). Abort stale requests (`AbortController`). Filter/sort change → page 0.
+- Render user data with `textContent` only. Never `innerHTML` with data.
 
 ## Change discipline
-- Work in small steps. Stop for review after each step and suggest a commit message.
-  The human commits.
-- Never commit or push unless explicitly asked. No destructive git operations
-  (reset --hard, force push, rebase of shared history, clean -f).
-- Don't add a dependency without asking first and saying why. Use the current stable version.
-- Stay in scope. No Docker, Kafka, Elasticsearch, auth or microservices unless asked. Propose the smallest
-  thing that meets the requirement, and say what you'd do at larger scale instead.
-- After a meaningful change where a decision was made, add one line to `docs/decisions.md`:
-  **chosen** — why — what we gave up.
-- Keep the README (setup, run, decisions/trade-offs, next steps) accurate when behaviour or commands change.
+- Small steps. Stop for review after each, suggest a commit message. The human commits.
+- Never commit or push unless asked. No destructive git (reset --hard, force push, clean -f).
+- No new dependency without asking and saying why. Use the current stable version.
+- Stay in scope: no Kafka/Elasticsearch/auth/microservices/new infrastructure unless asked. Propose
+  the smallest thing that works and say what you'd do at larger scale.
+- Decision made → one line in `docs/decisions.md`: **chosen** — why — what we gave up.
+- Behaviour, API or commands changed → update `README.md` (API section, "What I'd do next").
 
 ## Before saying "done"
-- [ ] `mvn verify` passes.
-- [ ] New or changed behaviour has a test that fails without the change.
-- [ ] No entity leaks into the API. Errors go through `ApiError`.
-- [ ] No in-memory filtering/sorting/paging. Listing is still ≤ 2 SQL statements.
+- [ ] `mvn verify` passes (or say clearly that it wasn't run).
+- [ ] New behaviour has a test that fails without it.
+- [ ] No entity in the API. Errors go through `ApiError`.
+- [ ] No in-memory filtering/sorting/paging. Listing still ≤ 2 SQL statements.
 - [ ] Schema changed only via a new migration.
-- [ ] `docs/decisions.md` / README updated if needed. Commit message suggested.
+- [ ] README / decisions updated if needed. Commit message suggested.
