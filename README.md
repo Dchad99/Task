@@ -256,4 +256,9 @@ Examples of how it was used, and what I changed or rejected:
 - **Security review**: checked every input path for SQL injection. The review found a missing test fixture and
   suggested asserting on the SQL actually run, not just the results.
 
-Transcripts: see `docs/ai/` <!-- TODO: add exported transcripts before submitting -->
+Transcripts and an annotated log (prompt → output → what I kept or changed): [docs/ai/](docs/ai/README.md).
+Commits made with the assistant carry a `Co-Authored-By: Claude` trailer.
+
+Note on history: GitHub's first commit (`Initial commit`) is an earlier prototype. The solution was
+rebuilt incrementally from `[TASK]: init commit`, and a merge keeps both histories rather than rewriting
+the remote.
